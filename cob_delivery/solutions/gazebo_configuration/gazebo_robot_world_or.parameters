@@ -1,0 +1,65 @@
+robots:
+  - name: map
+    type: apartment
+    robot_rapp_whitelist: [rocon_apps, concert_service_gazebo]
+    location: [0.0, 0.0, 0.0]
+  - name: cob3
+    type: cob3
+    robot_rapp_whitelist: [rocon_apps, concert_service_gazebo]
+    location: [0.0, 0.0, 0.0]
+  - name: cob4
+    type: cob4
+    robot_rapp_whitelist: [rocon_apps, concert_service_gazebo]
+    location: [3.0, -1.0, 1.0]
+  - name: cob5
+    type: cob5
+    robot_rapp_whitelist: [rocon_apps, concert_service_gazebo]
+    location: [1.5, -1.5, -0.5]
+  - name: rasdfr
+    type: raw
+    robot_rapp_whitelist: [rocon_apps, concert_service_gazebo]
+    location: [0.0, -3.0, -0.7]
+
+types:
+  - name: apartment 
+    launch: cob_delivery/apartment.launch
+    flip_rule:
+      pub:
+        - elevator_button1_bumper
+      sub:
+        - cmd_vel
+  - name: cob3
+    launch: cob_delivery/cob3-3.launch
+    flip_rule:
+      pub:
+        - odom
+        - scan
+      sub:
+        - cmd_vel
+  - name: cob5
+    launch: cob_delivery/cob3-5.launch
+    flip_rule:
+      pub:
+        - odom
+        - scan
+      sub:
+        - cmd_vel
+  - name: cob4
+    launch: cob_delivery/cob4-1.launch
+    flip_rule:
+      pub:
+        - odom
+        - scan
+      sub:
+        - cmd_vel
+  - name: raw
+    launch: cob_delivery/raw.launch 
+    flip_rule:
+      pub:
+        - odom
+        - scan
+      sub:
+        - cmd_vel
+        
+world_file: cob_gazebo_worlds/empty_apartment.world
+#world_file: office_sim_solution/yujin_office.world

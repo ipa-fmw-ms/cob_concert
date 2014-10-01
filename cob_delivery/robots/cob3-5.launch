@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="name" />
+  <arg name="loc_x" />
+  <arg name="loc_y" />
+  <arg name="loc_z" />
+  <arg name="loc_roll"/>
+  <arg name="loc_pitch"/>
+  <arg name="loc_yaw"/>
+  <arg name="world_namespace"/>
+  <arg name="use_full_gazebo_model" default="true"/>
+  <arg name="base_prefix" default="mobile_base"/>
+
+  <param name="tf_prefix" value="$(arg name)"/>
+  <param name="base_prefix" value="$(arg base_prefix)"/>
+  
+	<!-- define arguments -->
+	<arg name="robot" default="cob3-5"/>
+	<arg name="robot_env" default="$(optenv ROBOT_ENV !!NO_ROBOT_ENV_SET!!)"/>
+	<arg name="pkg_robot_config" default="$(find cob_default_robot_config)"/>
+	<arg name="pkg_env_config" default="$(find cob_default_env_config)"/>
+	
+	<arg name="paused" default="false"/>
+	<arg name="use_sim_time" default="true"/>
+	<arg name="gui" default="true"/>
+	<arg name="throttled" default="false"/>
+  
+	<!-- upload default configuration parameters -->
+	<include file="$(arg pkg_robot_config)/upload_param.launch">
+		<arg name="robot" value="$(arg robot)" />
+	</include>
+	<include file="$(arg pkg_env_config)/upload_navigation_goals.launch">
+		<arg name="robot_env" value="$(arg robot_env)" />
+	</include>
+	<include file="$(arg pkg_env_config)/upload_object_locations.launch">
+		<arg name="robot_env" value="$(arg robot_env)" />
+	</include>
+  
+	<!-- send robot urdf to param server -->
+	<include file="$(find cob_hardware_config)/common/upload_robot.launch" >
+		<arg name="robot" value="$(arg robot)" />
+	</include>
+  <!--param name="robot_description" command="$(find xacro)/xacro.py '$(find kobuki_description)/urdf/kobuki_standalone.urdf.xacro' use_full_gazebo_model:=$(arg use_full_gazebo_model)"/-->
+
+  <node pkg="gazebo_ros" type="spawn_model" name="spawn_$(arg name)" 
+           args="-param robot_description
+                 -x $(arg loc_x)
+                 -y $(arg loc_y)
+                 -z $(arg loc_z)  
+                 -R $(arg loc_roll)
+                 -P $(arg loc_pitch)
+                 -Y $(arg loc_yaw)
+                 -unpause 
+                 -urdf 
+                 -model $(arg name)
+                 -gazebo_namespace $(arg world_namespace)
+                " respawn="false" output="screen">
+  </node>
+
+	<!-- start gazebo controllers -->
+	<include file="$(find cob_controller_configuration_gazebo)/launch/robots/default_controllers_$(arg robot).launch" >
+		<arg name="robot" value="$(arg robot)" />
+	</include>
+  
+  <!-- launch the joint state publisher to default values -->
+  <node pkg="joint_state_publisher" type="joint_state_publisher" name="joint_state_publisher" />
+
+  <!--node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="30.0" />
+    <param name="tf_prefix" value="$(arg name)"/>
+  </node-->
+  
+	<node name="world_tf_publisher" pkg="cob_gazebo_worlds" type="tf_publisher.py"  respawn="false" output="screen" />
+  
+  <node pkg="nodelet" type="nodelet" name="$(arg name)_nodelet_manager" args="manager"/>
+</launch>
